@@ -6,15 +6,16 @@ namespace WP_CLI\Utils;
 
 use \WP_CLI\Dispatcher;
 use \WP_CLI\Iterators\Transform;
+use \Requests;
 
 function load_dependencies() {
+
 	if ( 0 === strpos( WP_CLI_ROOT, 'phar:' ) ) {
 		require WP_CLI_ROOT . '/vendor/autoload.php';
 		return;
 	}
 
 	$has_autoload = false;
-
 	foreach ( get_vendor_paths() as $vendor_path ) {
 		if ( file_exists( $vendor_path . '/autoload.php' ) ) {
 			require $vendor_path . '/autoload.php';
@@ -401,3 +402,71 @@ function replace_path_consts( $source, $path ) {
 
 	return str_replace( $old, $new, $source );
 }
+
+
+/** 
+ * Extract tarball
+ *
+ */
+function extract_archive( $tarball, $destination, $delete_after = true ) {
+		if ( ! class_exists( 'PharData' ) ) {
+			$cmd = "tar xz --strip-components=1 --directory=%s -f $tarball";
+			echo Utils\esc_cmd( $cmd, $destination );
+			WP_CLI::launch( Utils\esc_cmd( $cmd, $destination ) );
+			return; 
+		}
+
+		try {
+			$phar = new \PharData( $tarball );
+			$tempdir = implode( DIRECTORY_SEPARATOR, Array (
+				dirname( $tarball ),
+				basename( $tarball, '.tar.gz' ),
+				$phar->getFileName()
+			) );
+			$phar->extractTo( dirname( $tempdir ), null, true );
+			if ( true === $delete_after ) 
+				unlink($tarball);
+			return $tempdir;
+		}
+		catch( Exception $e ) {
+			WP_CLI::error($e->getMessage());
+		}
+}
+
+/**
+ * Make a request 
+ * @params $method string required - GET,POST,etc
+ * @params $url string required - url to be requested
+ * @params $headers array optional - http headers
+ * @params $options array optional - other options available to the Requests object
+ *
+ * @todo this should replace the Core_Command::_request() method 
+ */
+function make_request( $method, $url, $headers = array(), $options = array() ) {
+
+	include_once(WP_CLI_ROOT.'/vendor/rmccue/requests/library/Requests.php');
+	Requests::register_autoloader();
+
+	// cURL can't read Phar archives
+	if ( 0 === strpos( WP_CLI_ROOT, 'phar://' ) ) {
+		$options['verify'] = sys_get_temp_dir() . '/wp-cli-cacert.pem';
+
+		copy(
+			WP_CLI_ROOT . '/vendor/rmccue/requests/library/Requests/Transport/cacert.pem',
+			$options['verify']
+		);
+	}
+
+	try {
+		return Requests::get( $url, $headers, $options );
+	} catch( Requests_Exception $ex ) {
+		// Handle SSL certificate issues gracefully
+		WP_CLI::warning( $ex->getMessage() );
+		$options['verify'] = false;
+		try {
+			return Requests::get( $url, $headers, $options );
+		} catch( Requests_Exception $ex ) {
+			WP_CLI::error( $ex->getMessage() );
+		}
+	}
+} 

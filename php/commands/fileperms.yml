@@ -1,0 +1,6 @@
+---
+default:
+  file: '0755'
+  directory: '0775'
+custom:
+  ".*/xmlrpc.php" : '0644'

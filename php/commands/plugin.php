@@ -314,7 +314,7 @@ class Plugin_Command extends \WP_CLI\CommandWithUpgrade {
 
 	protected function get_item_list() {
 		$items = array();
-
+		
 		foreach ( get_plugins() as $file => $details ) {
 			$update_info = $this->get_update_info( $file );
 

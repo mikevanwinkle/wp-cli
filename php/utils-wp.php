@@ -113,3 +113,22 @@ function wp_register_unused_sidebar() {
 	));
 
 }
+
+/**
+ * Get the WordPress.org download Url
+ * Needs to be accessible to all commands
+ */
+function get_wp_download_url($version, $locale = 'en_US', $file_type = 'zip') {
+	if ('en_US' === $locale) {
+		$url = sprintf('https://wordpress.org/wordpress-%s.%s', $version, $file_type);
+		return $url;
+	} else {
+		$url = sprintf(
+			'https://%s.wordpress.org/wordpress-%s-%s.' . $file_type,
+			substr($locale, 0, 2),
+			$version,
+			$locale
+		);
+		return $url;
+	}
+}

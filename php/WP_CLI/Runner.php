@@ -143,7 +143,6 @@ class Runner {
 		if ( $this->cmd_starts_with( array( 'core', 'download' ) ) ) {
 			return getcwd();
 		}
-
 		$dir = getcwd();
 
 		while ( is_readable( $dir ) ) {
