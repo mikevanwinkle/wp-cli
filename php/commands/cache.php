@@ -9,6 +9,8 @@
  *
  *     wp cache get my_key my_group
  */
+
+// mike custom note
 class Cache_Command extends WP_CLI_Command {
 
 	/**
@@ -219,4 +221,3 @@ class Cache_Command extends WP_CLI_Command {
 }
 
 WP_CLI::add_command( 'cache', 'Cache_Command' );
-
