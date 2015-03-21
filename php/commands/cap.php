@@ -14,6 +14,7 @@
  *     # Remove all caps from 'editor' role that also appear in 'author' role
  *     wp cap list 'author' | xargs wp cap remove 'editor'
  */
+// another comment
 class Capabilities_Command extends WP_CLI_Command {
 
 	/**
@@ -106,4 +107,3 @@ class Capabilities_Command extends WP_CLI_Command {
 }
 
 WP_CLI::add_command( 'cap', 'Capabilities_Command' );
-
